@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: Commit to test (default: head of the dispatched ref)
+        description: "Commit to test (default: head of the dispatched ref)"
         required: false
 permissions:
   contents: read
