@@ -18,9 +18,12 @@ the Confluence "Tip Split — Project Context" page and this file before work.
 Push and pull_request events do **not** start workflows for this account right
 now; only manual runs work. Therefore:
 
-1. After pushing a PR branch, start CI for it and wait for it to pass:
-   `gh workflow run ci.yml --ref <branch>` then `gh run watch` (the run marks
-   the `test` check on the PR head commit).
+1. After pushing a PR branch, start CI for its head commit from `develop` and
+   wait for it to pass:
+   `gh workflow run ci.yml --ref develop -f sha=<full 40-hex head sha>` then
+   `gh run watch`. The run publishes the commit status `test` on that commit,
+   which is what branch protection requires (checks of manual runs alone do
+   not count). Re-run it after every push to the PR.
 2. After merging into `develop`, start the dev deployment of the merge commit:
    `gh workflow run deploy-dev.yml --ref develop`, and confirm the `dev`
    deployment for that exact SHA succeeded
