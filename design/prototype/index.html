@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tip Split — prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="mock-banner" role="note">
+      Design prototype — mock data only, nothing is calculated by a server or saved.
+    </div>
+
+    <main class="table">
+      <form class="receipt" novalidate aria-label="Tip and split calculator">
+        <header class="receipt__head">
+          <p class="receipt__brand">TIP SPLIT</p>
+          <p class="receipt__tag">split it evenly, down to the cent</p>
+        </header>
+
+        <div class="receipt__row">
+          <label class="receipt__label" for="bill">Bill amount</label>
+          <div class="receipt__field">
+            <span class="receipt__currency" aria-hidden="true">$</span>
+            <input
+              id="bill"
+              name="bill"
+              class="receipt__input"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="0.00"
+              aria-describedby="bill-error"
+            />
+          </div>
+        </div>
+        <p id="bill-error" class="receipt__error" role="alert" hidden></p>
+
+        <div class="receipt__row receipt__row--tip">
+          <span class="receipt__label" id="tip-label">Tip</span>
+          <div class="receipt__presets" role="radiogroup" aria-labelledby="tip-label">
+            <button type="button" class="chip" data-percent="10" role="radio" aria-checked="false">10%</button>
+            <button type="button" class="chip" data-percent="15" role="radio" aria-checked="false">15%</button>
+            <button type="button" class="chip" data-percent="20" role="radio" aria-checked="false">20%</button>
+            <label class="chip chip--custom" for="custom-percent">
+              <input
+                id="custom-percent"
+                name="custom-percent"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="custom %"
+                aria-describedby="percent-error"
+              />
+            </label>
+          </div>
+        </div>
+        <p id="percent-error" class="receipt__error" role="alert" hidden></p>
+
+        <div class="receipt__totals" aria-live="polite">
+          <div class="receipt__line">
+            <span class="receipt__dotted">Tip</span>
+            <span class="receipt__amount" id="tip-amount">—.——</span>
+          </div>
+          <div class="receipt__line receipt__line--total">
+            <span class="receipt__dotted">Total</span>
+            <span class="receipt__amount receipt__amount--stamp" id="total-amount">—.——</span>
+          </div>
+        </div>
+
+        <div class="receipt__tear" aria-hidden="true"></div>
+
+        <div class="receipt__row">
+          <label class="receipt__label" for="people">Guests</label>
+          <div class="receipt__stepper">
+            <button type="button" class="stepper__btn" id="people-down" aria-label="One fewer guest">
+              &minus;
+            </button>
+            <input
+              id="people"
+              name="people"
+              class="receipt__input receipt__input--center"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              value="1"
+              aria-describedby="people-error"
+            />
+            <button type="button" class="stepper__btn" id="people-up" aria-label="One more guest">
+              &plus;
+            </button>
+          </div>
+        </div>
+        <p id="people-error" class="receipt__error" role="alert" hidden></p>
+
+        <div class="receipt__split" aria-live="polite">
+          <p class="receipt__empty" id="split-empty">Add a bill to split the total.</p>
+          <ol class="receipt__ledger" id="split-ledger" hidden></ol>
+          <p class="receipt__note" id="split-note" hidden></p>
+        </div>
+
+        <footer class="receipt__foot">
+          <div class="receipt__perf" aria-hidden="true"></div>
+          <p class="receipt__disclaimer">no card required · nothing is saved</p>
+        </footer>
+      </form>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
