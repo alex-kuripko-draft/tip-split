@@ -1,0 +1,57 @@
+name: Record deployment
+description: >
+  Records a GitHub deployment + status for an exact commit. Call it from ANY
+  deploy workflow (Kubernetes, GitHub Pages, SSH, cloud platform, ...): this is
+  the only contract the Buzz delivery coordinator relies on.
+inputs:
+  environment:
+    description: Environment name exactly as mapped for the product (e.g. dev, production)
+    required: true
+  sha:
+    description: Exact 40-hex commit that was deployed
+    required: true
+  state:
+    description: success | failure | error | in_progress
+    required: true
+  environment-url:
+    description: URL where the deployed version can be checked (optional)
+    required: false
+    default: ''
+  deployment-id:
+    description: Existing deployment id to add a status to (omit to create one)
+    required: false
+    default: ''
+  token:
+    description: Token with deployments:write (usually github.token)
+    required: true
+outputs:
+  deployment-id:
+    description: The deployment id (created or reused)
+    value: ${{ steps.record.outputs.id }}
+runs:
+  using: composite
+  steps:
+    - id: record
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ github.repository }}
+        ENV_NAME: ${{ inputs.environment }}
+        SHA: ${{ inputs.sha }}
+        STATE: ${{ inputs.state }}
+        ENV_URL: ${{ inputs.environment-url }}
+        DEP_ID: ${{ inputs.deployment-id }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -euo pipefail
+        echo "$SHA" | grep -Eq '^[0-9a-f]{40}$' || { echo "sha must be 40 hex"; exit 1; }
+        id="$DEP_ID"
+        if [ -z "$id" ]; then
+          id=$(gh api "repos/$REPO/deployments" -X POST -f ref="$SHA" -f environment="$ENV_NAME" \
+            -F auto_merge=false -F "required_contexts[]" -f description="$ENV_NAME deployment" --jq .id)
+        fi
+        args=(-f state="$STATE" -f environment="$ENV_NAME" -f log_url="$RUN_URL")
+        [ -n "$ENV_URL" ] && args+=(-f environment_url="$ENV_URL")
+        gh api "repos/$REPO/deployments/$id/statuses" -X POST "${args[@]}" >/dev/null
+        echo "id=$id" >> "$GITHUB_OUTPUT"
+        echo "$ENV_NAME deployment $id for $SHA: $STATE"
