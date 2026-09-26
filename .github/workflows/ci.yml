@@ -3,6 +3,9 @@ on:
   pull_request:
   push:
     branches: [main, develop]
+  # This GitHub account currently gets no push/pull_request-triggered runs;
+  # agents dispatch CI for the PR head branch instead (see AGENTS.md).
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
