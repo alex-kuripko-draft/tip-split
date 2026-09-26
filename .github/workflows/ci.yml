@@ -3,9 +3,15 @@ on:
   pull_request:
   push:
     branches: [main, develop]
-  # This GitHub account currently gets no push/pull_request-triggered runs;
-  # agents dispatch CI for the PR head branch instead (see AGENTS.md).
+  # This GitHub account currently gets no push/pull_request-triggered runs, and
+  # checks from manual runs do not count for branch protection. Agents dispatch
+  # CI from develop for a PR head commit (see AGENTS.md); the `report` job then
+  # publishes the result as the commit status `test` on that exact commit.
   workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit to test (default: head of the dispatched ref)"
+        required: false
 permissions:
   contents: read
 jobs:
@@ -13,7 +19,27 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.sha || github.sha }}
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
       - run: npm test
+  report:
+    needs: test
+    if: always() && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    permissions:
+      statuses: write
+    steps:
+      - name: Publish commit status `test`
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ inputs.sha || github.sha }}
+          RESULT: ${{ needs.test.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "sha must be a full 40-hex commit"; exit 1; }
+          if [[ "$RESULT" == success ]]; then state=success; else state=failure; fi
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" -f state="$state" -f context=test \
+            -f target_url="$RUN_URL" -f description="npm test: $RESULT (manual CI run)"
